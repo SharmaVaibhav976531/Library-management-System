@@ -1,0 +1,27 @@
+{% extends "base.jinja" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Library Catalog</h2>
+    <form class="d-flex" method="GET">
+        <input class="form-control me-2" type="search" name="q" placeholder="Search by title, author, ISBN" value="{{ query }}">
+        <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+</div>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr><th>ISBN</th><th>Title</th><th>Author</th><th>Category</th><th>Available</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+        {% for book in books %}
+        <tr>
+            <td>{{ book.isbn }}</td>
+            <td>{{ book.title }}</td>
+            <td>{{ book.author }}</td>
+            <td>{{ book.category.name }}</td>
+            <td><span class="badge {% if book.available_copies > 0 %}bg-success{% else %}bg-danger{% endif %}">{{ book.available_copies }}</span></td>
+            <td><a href="/transactions/issue/?book={{ book.id }}" class="btn btn-sm btn-primary">Issue</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

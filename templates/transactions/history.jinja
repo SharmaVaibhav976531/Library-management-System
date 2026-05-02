@@ -1,0 +1,55 @@
+{% extends "base.jinja" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>{{ title }}</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Book</th>
+                    <th>Member</th>
+                    <th>Issued Date</th>
+                    <th>Due Date</th>
+                    <th>Return Date</th>
+                    <th>Status</th>
+                    <th>Fine (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for issue in issues %}
+                <tr>
+                    <td>{{ issue.book.title }}</td>
+                    <td>{{ issue.member.name }}</td>
+                    <td>{{ issue.issue_date.strftime("%d %b %Y") }}</td>
+                    <td>{{ issue.due_date.strftime("%d %b %Y") }}</td>
+                    <td>{{ issue.return_date.strftime("%d %b %Y") if issue.return_date else "-" }}</td>
+                    <td>
+                        <span class="badge bg-{% if issue.status == 'issued' %}primary{% elif issue.status == 'overdue' %}danger{% elif issue.status == 'returned' %}success{% else %}secondary{% endif %}">
+                            {{ issue.status|upper }}
+                        </span>
+                    </td>
+                    <td>{{ issue.fine_amount|default("0.00") }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if not issues %}
+    <div class="alert alert-info">
+        No transactions found.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

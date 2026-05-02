@@ -1,0 +1,37 @@
+{% extends "base.jinja" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5>Total Books</h5>
+                <h2>{{ stats.total_books }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5>Active Members</h5>
+                <h2>{{ stats.total_members }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5>Overdue</h5>
+                <h2>{{ stats.overdue }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5>Fines Collected</h5>
+                <h2>₹{{ "%.2f"|format(stats.fines_collected) }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

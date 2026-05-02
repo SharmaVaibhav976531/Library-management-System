@@ -1,0 +1,107 @@
+{% extends "base.jinja" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">📚 Issue Book</h4>
+            </div>
+            <div class="card-body">
+                <!-- Messages Display -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Issue Book Form -->
+                <form method="POST" action="/transactions/issue/">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    
+                    <!-- Member Selection -->
+                    <div class="mb-3">
+                        <label for="member_id" class="form-label fw-bold">Select Member</label>
+                        <select class="form-select" id="member_id" name="member_id" required>
+                            <option value="">-- Choose a Member --</option>
+                            {% for member in members %}
+                                <option value="{{ member.id }}">
+                                    {{ member.member_code }} - {{ member.full_name }} 
+                                    {% if member.status != 'active' %}(Inactive){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Only active members with &lt;2 overdue books can borrow.</div>
+                    </div>
+
+                    <!-- Book Selection -->
+                    <div class="mb-3">
+                        <label for="book_id" class="form-label fw-bold">Select Book</label>
+                        <select class="form-select" id="book_id" name="book_id" required>
+                            <option value="">-- Choose a Book --</option>
+                            {% for book in books %}
+                                <option value="{{ book.id }}" {% if book.available_copies <= 0 %}disabled{% endif %}>
+                                    {{ book.title }} by {{ book.author }} 
+                                    (Available: {{ book.available_copies }}/{{ book.total_copies }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Books with 0 available copies cannot be issued.</div>
+                    </div>
+
+                    <!-- Due Date Info -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        <strong>Loan Period:</strong> 14 days from issue date. 
+                        Fine: ₹5/day for overdue returns.
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/library/books/" class="btn btn-secondary">← Back to Catalog</a>
+                        <button type="submit" class="btn btn-success">Issue Book</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Search Helper -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-title">🔍 Quick Search</h6>
+                <form action="/library/books/" method="GET" class="d-flex">
+                    <input class="form-control me-2" type="search" name="q" placeholder="Search by title, author, ISBN">
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inline Script for Dynamic Validation -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const memberSelect = document.getElementById('member_id');
+    const bookSelect = document.getElementById('book_id');
+    
+    // Disable submit if invalid selection
+    function validateForm() {
+        const member = memberSelect.value;
+        const book = bookSelect.value;
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (!member || !book) {
+            submitBtn.disabled = true;
+        } else {
+            submitBtn.disabled = false;
+        }
+    }
+    
+    memberSelect.addEventListener('change', validateForm);
+    bookSelect.addEventListener('change', validateForm);
+    validateForm(); // Initial check
+});
+</script>
+{% endblock %}
