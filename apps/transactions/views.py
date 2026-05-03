@@ -43,7 +43,6 @@ def issue_book_view(request):
                     messages.error(request, "Member account is not active.")
                     return redirect("issue_page")
 
-                # Check overdue limit (max 2 overdue books)
                 overdue_count = BookIssue.objects.filter(
                     member=member, status="overdue"
                 ).count()
@@ -127,8 +126,6 @@ def return_book_view(request):
                     issue.fine_amount = 0.00
                     messages.success(request, "✅ Book returned on time. No fine.")
 
-                # ✅ CRITICAL FIX: Always set status to 'returned' when book is returned
-                # Whether it was overdue or not, status should be 'returned' after return
                 issue.status = "returned"
 
                 # Update book availability
@@ -180,7 +177,7 @@ def pay_fine_view(request, fine_id):
         with transaction.atomic():
             fine = Fine.objects.select_for_update().get(
                 id=fine_id, 
-                paid_status=False  # Only allow unpaid fines
+                paid_status=False
             )
             
             # Mark as paid

@@ -26,10 +26,10 @@ def dashboard_kpis(request):
         ).count(),
         'overdue': BookIssue.objects.filter(status='overdue').count(),
         'fines_collected': Fine.objects.filter(
-            paid_status=True  # ✅ Only count PAID fines
+            paid_status=True
         ).aggregate(total=Sum('amount'))['total'] or 0,
         'fines_pending': Fine.objects.filter(
-            paid_status=False  # Optional: Track pending fines
+            paid_status=False
         ).aggregate(total=Sum('amount'))['total'] or 0,
     }
     

@@ -86,7 +86,6 @@ class BookAdmin(admin.ModelAdmin):
         }),
     )
 
-    # ---------- Custom Columns ----------
 
     def cover_preview(self, obj):
         if obj.cover_image:
@@ -99,13 +98,13 @@ class BookAdmin(admin.ModelAdmin):
 
     def copies_status(self, obj):
         if obj.available_copies == 0:
-            color = "#ef4444"  # red
+            color = "#ef4444"
             label = "Out of Stock"
         elif obj.available_copies < obj.total_copies:
-            color = "#f59e0b"  # yellow
+            color = "#f59e0b"
             label = "Partially Available"
         else:
-            color = "#10b981"  # green
+            color = "#10b981"
             label = "Available"
 
         return format_html(
@@ -117,7 +116,6 @@ class BookAdmin(admin.ModelAdmin):
         )
     copies_status.short_description = "Copies"
 
-    # ---------- Performance ----------
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related("category")
