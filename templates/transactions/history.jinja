@@ -1,55 +1,81 @@
 {% extends "base.jinja" %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>{{ title }}</h1>
-    
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-    
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Book</th>
-                    <th>Member</th>
-                    <th>Issued Date</th>
-                    <th>Due Date</th>
-                    <th>Return Date</th>
-                    <th>Status</th>
-                    <th>Fine (₹)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for issue in issues %}
-                <tr>
-                    <td>{{ issue.book.title }}</td>
-                    <td>{{ issue.member.name }}</td>
-                    <td>{{ issue.issue_date.strftime("%d %b %Y") }}</td>
-                    <td>{{ issue.due_date.strftime("%d %b %Y") }}</td>
-                    <td>{{ issue.return_date.strftime("%d %b %Y") if issue.return_date else "-" }}</td>
-                    <td>
-                        <span class="badge bg-{% if issue.status == 'issued' %}primary{% elif issue.status == 'overdue' %}danger{% elif issue.status == 'returned' %}success{% else %}secondary{% endif %}">
-                            {{ issue.status|upper }}
-                        </span>
-                    </td>
-                    <td>{{ issue.fine_amount|default("0.00") }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
-    {% if not issues %}
-    <div class="alert alert-info">
-        No transactions found.
-    </div>
-    {% endif %}
+<h2>Transaction History</h2>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-primary">
+            <tr>
+                <th>Book</th>
+                <th>Member</th>
+                <th>Issued Date</th>
+                <th>Due Date</th>
+                <th>Return Date</th>
+                <th>Status</th>
+                <th>Fine (₹)</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in issues %}
+            <tr>
+                <td><strong>{{ issue.book.title }}</strong></td>
+                <td>{{ issue.member.full_name }}</td>
+                <td>{{ issue.issue_date.strftime('%d %b %Y') }}</td>
+                <td>{{ issue.due_date.strftime('%d %b %Y') }}</td>
+                <td>
+                    {% if issue.return_date %}
+                        {{ issue.return_date.strftime('%d %b %Y') }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if issue.status == 'issued' %}
+                        <span class="badge bg-primary">ISSUED</span>
+                    {% elif issue.status == 'overdue' %}
+                        <span class="badge bg-danger">OVERDUE</span>
+                    {% else %}
+                        <span class="badge bg-success">RETURNED</span>
+                    {% endif %}
+                </td>
+                <td>₹{{ "%.2f"|format(issue.fine_amount) }}</td>
+                <td>
+                {% if issue.status in ['issued', 'overdue'] %}
+                    <!-- Return Button -->
+                    <form method="POST" action="/transactions/return/" class="d-inline">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <input type="hidden" name="issue_id" value="{{ issue.id }}">
+                        <button type="submit" class="btn btn-sm btn-success">Return</button>
+                    </form>
+
+                {% elif issue.status == 'returned' and issue.fine_amount > 0 %}
+                    <!-- Fine Payment Button -->
+                    {% set fine_record = issue.fine_set.first() %}
+                    {% if fine_record %}
+                        {% if fine_record.paid_status %}
+                            <span class="badge bg-success">✅ PAID</span>
+                        {% else %}
+                            <a href="/transactions/fine/{{ fine_record.id }}/pay/" 
+                            class="btn btn-sm btn-warning"
+                            onclick="return confirm('Confirm fine payment of ₹{{ fine_record.amount }}?')">
+                                💰 Collect Fine
+                            </a>
+                        {% endif %}
+                    {% endif %}
+
+                {% else %}
+                    <span class="text-muted">-</span>
+                {% endif %}
+            </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="text-center text-muted">No transactions found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

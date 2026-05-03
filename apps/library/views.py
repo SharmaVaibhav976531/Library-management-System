@@ -24,8 +24,19 @@ class BookViewSet(viewsets.ModelViewSet):
 
 @login_required
 def book_list_web(request):
-    query = request.GET.get('q', '')
-    books = Book.objects.filter(
-        Q(title__icontains=query) | Q(author__icontains=query) | Q(isbn__icontains=query)
-    )
-    return render(request, 'library/book_list.jinja', {'books': books, 'query': query})
+    query = request.GET.get('q', '').strip()
+    
+    books = Book.objects.select_related('category').all()
+    
+    if query:
+        books = books.filter(
+            Q(title__icontains=query) | 
+            Q(author__icontains=query) | 
+            Q(isbn__icontains=query)
+        )
+        
+    return render(request, 'library/book_list.jinja', {
+        'books': books.order_by('title'),
+        'query': query,
+        'title': 'Library Catalog'
+    })

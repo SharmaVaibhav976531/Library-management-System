@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from django.urls import reverse_lazy, reverse
 
 load_dotenv()
 
@@ -10,6 +11,7 @@ DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
 INSTALLED_APPS = [
+    "unfold",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -46,18 +48,16 @@ TEMPLATES = [
         "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
-            "environment": "lms_core.jinja.environment",
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.csrf",
             ],
             "extensions": [
                 "jinja2.ext.do",
                 "jinja2.ext.loopcontrols",
-                "jinja2.ext.i18n",
-                
             ],
-            "autoescape": True,
+            "environment": "lms_core.jinja.environment",
         },
     },
     {
@@ -70,6 +70,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.csrf",
             ],
         },
     },
@@ -139,3 +140,98 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG
 CSRF_COOKIE_HTTPONLY = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+
+from django.urls import reverse_lazy
+
+UNFOLD = {
+    "SITE_TITLE": "Library Admin Dashboard",
+    "SITE_HEADER": "Library Management Admin",
+    "SHOW_HISTORY": True,
+    "DARK_MODE": True,
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": "Users & Access Control",
+                "icon": "admin_panel_settings",
+                "items": [
+                    {
+                        "title": "Users",
+                        "icon": "person",
+                        "link": reverse_lazy("admin:accounts_customuser_changelist"),
+                    },
+                    {
+                        "title": "Groups",
+                        "icon": "groups",
+                        "link": reverse_lazy("admin:auth_group_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Library Catalog",
+                "icon": "menu_book",
+                "items": [
+                    {
+                        "title": "Categories",
+                        "icon": "category",
+                        "link": reverse_lazy("admin:library_category_changelist"),
+                    },
+                    {
+                        "title": "Books",
+                        "icon": "book",
+                        "link": reverse_lazy("admin:library_book_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Members",
+                "icon": "badge",
+                "items": [
+                    {
+                        "title": "Members List",
+                        "icon": "people",
+                        "link": reverse_lazy("admin:transactions_member_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Book Transactions",
+                "icon": "swap_horiz",
+                "items": [
+                    {
+                        "title": "Book Issues",
+                        "icon": "assignment_turned_in",
+                        "link": reverse_lazy("admin:transactions_bookissue_changelist"),
+                    },
+                    {
+                        "title": "Reservations",
+                        "icon": "event_available",
+                        "link": reverse_lazy(
+                            "admin:transactions_reservation_changelist"
+                        ),
+                    },
+                    {
+                        "title": "Fines",
+                        "icon": "payments",
+                        "link": reverse_lazy("admin:transactions_fine_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Notifications",
+                "icon": "notifications",
+                "items": [
+                    {
+                        "title": "Notifications Log",
+                        "icon": "campaign",
+                        "link": reverse_lazy(
+                            "admin:transactions_notification_changelist"
+                        ),
+                    },
+                ],
+            },
+        ],
+    },
+}

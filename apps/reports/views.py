@@ -13,18 +13,26 @@ from apps.transactions.models import BookIssue, Fine, Member
 
 @login_required
 def dashboard_kpis(request):
-    """Reports dashboard with KPI statistics"""
+    from apps.library.models import Book
+    from apps.transactions.models import BookIssue, Fine, Member
+    from django.utils import timezone
+    from django.db.models import Count, Sum
+    
     stats = {
-        'total_books': Book.objects.aggregate(total=Count('id'))['total'] or 0,
+        'total_books': Book.objects.count(),
         'total_members': Member.objects.filter(status='active').count(),
         'issued_today': BookIssue.objects.filter(
             issue_date=timezone.now().date()
         ).count(),
         'overdue': BookIssue.objects.filter(status='overdue').count(),
         'fines_collected': Fine.objects.filter(
-            paid_status=True
+            paid_status=True  # ✅ Only count PAID fines
+        ).aggregate(total=Sum('amount'))['total'] or 0,
+        'fines_pending': Fine.objects.filter(
+            paid_status=False  # Optional: Track pending fines
         ).aggregate(total=Sum('amount'))['total'] or 0,
     }
+    
     return render(request, 'reports/dashboard.jinja', {
         'title': 'Library Analytics',
         'user': request.user,

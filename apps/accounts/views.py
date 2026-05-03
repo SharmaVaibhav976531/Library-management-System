@@ -10,6 +10,7 @@ from .serializers import UserRegistrationSerializer
 from .models import CustomUser
 from apps.library.models import Book
 from apps.transactions.models import BookIssue, Fine, Member
+from django.middleware.csrf import get_token 
 
 def home_view(request):
     if request.user.is_authenticated:
@@ -36,16 +37,34 @@ def dashboard_view(request):
         'stats': stats
     })
 
+# def login_view(request):
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         user = authenticate(request, username=username, password=password)
+#         if user:
+#             login(request, user)
+#             return redirect('dashboard')
+#         messages.error(request, 'Invalid credentials')
+#     return render(request, 'accounts/login.jinja')
+
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
-        if user:
+        
+        if user and user.is_active:
             login(request, user)
             return redirect('dashboard')
-        messages.error(request, 'Invalid credentials')
-    return render(request, 'accounts/login.jinja')
+        else:
+            messages.error(request, 'Invalid credentials or inactive account')
+    
+    return render(request, 'accounts/login.jinja', {
+        'title': 'LMS Login',
+        'csrf_token': get_token(request)
+    })
 
 def logout_view(request):
     logout(request)
