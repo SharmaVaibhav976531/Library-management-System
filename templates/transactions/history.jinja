@@ -18,7 +18,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for issue in issues %}
+            {% for issue in page_obj %}
             <tr>
                 <td><strong>{{ issue.book.title }}</strong></td>
                 <td>{{ issue.member.full_name }}</td>
@@ -42,33 +42,32 @@
                 </td>
                 <td>₹{{ "%.2f"|format(issue.fine_amount) }}</td>
                 <td>
-                {% if issue.status in ['issued', 'overdue'] %}
-                    <!-- Return Button -->
-                    <form method="POST" action="/transactions/return/" class="d-inline">
-                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                        <input type="hidden" name="issue_id" value="{{ issue.id }}">
-                        <button type="submit" class="btn btn-sm btn-success">Return</button>
-                    </form>
+                    {% if issue.status in ['issued', 'overdue'] %}
+                        <form method="POST" action="/transactions/return/" class="d-inline">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                            <input type="hidden" name="issue_id" value="{{ issue.id }}">
+                            <button type="submit" class="btn btn-sm btn-success" 
+                                    onclick="return confirm('Confirm return of {{ issue.book.title }}?')">
+                                Return
+                            </button>
+                        </form>
 
-                {% elif issue.status == 'returned' and issue.fine_amount > 0 %}
-                    <!-- Fine Payment Button -->
-                    {% set fine_record = issue.fine_set.first() %}
-                    {% if fine_record %}
-                        {% if fine_record.paid_status %}
+                    {% elif issue.status == 'returned' and issue.fine_amount > 0 %}
+                        {% set fine_record = issue.fine_set.first() %}
+                        {% if fine_record and fine_record.paid_status %}
                             <span class="badge bg-success">✅ PAID</span>
-                        {% else %}
-                            <a href="/transactions/fine/{{ fine_record.id }}/pay/" 
-                            class="btn btn-sm btn-warning"
-                            onclick="return confirm('Confirm fine payment of ₹{{ fine_record.amount }}?')">
-                                💰 Collect Fine
+                        {% elif fine_record %}
+                            <a href="/transactions/fine/{{ fine_record.id }}/pay/" class="btn btn-sm btn-warning">
+                                💰 Pay Fine
                             </a>
+                        {% else %}
+                            <span class="badge bg-secondary">Pending</span>
                         {% endif %}
-                    {% endif %}
 
-                {% else %}
-                    <span class="text-muted">-</span>
-                {% endif %}
-            </td>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
             </tr>
             {% else %}
             <tr>
@@ -78,4 +77,38 @@
         </tbody>
     </table>
 </div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav aria-label="Transaction pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous() %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">&laquo; First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number() }}">Previous</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; First</span></li>
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next() %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number() }}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+            <li class="page-item disabled"><span class="page-link">Last &raquo;</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 {% endblock %}

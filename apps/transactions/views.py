@@ -10,15 +10,19 @@ from rest_framework import status
 from .models import BookIssue, Member, Reservation, Fine
 from apps.library.models import Book
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator 
 
 
+@login_required
 def transaction_history_view(request):
-    issues = BookIssue.objects.all().order_by("-issue_date")
-    return render(
-        request,
-        "transactions/history.jinja",
-        {"issues": issues, "title": "Transaction History"},
-    )
+    issues_qs = BookIssue.objects.select_related('book', 'member').prefetch_related('fine_set').all().order_by('-issue_date')
+    paginator = Paginator(issues_qs, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'transactions/history.jinja', {
+        'title': 'Transaction History',
+        'page_obj': page_obj,
+    })  
 
 
 @login_required
