@@ -11,9 +11,9 @@ python manage.py shell << END
 from apps.accounts.models import CustomUser
 import os
 
-username = os.getenv('DJANGO_SUPERUSER_USERNAME', 'admin')
-email = os.getenv('DJANGO_SUPERUSER_EMAIL', 'admin@admin.com')
-password = os.getenv('DJANGO_SUPERUSER_PASSWORD', 'Admin@1234')
+username = os.getenv('DJANGO_ADMIN_USERNAME', 'admin')
+email = os.getenv('DJANGO_ADMIN_EMAIL', 'admin@admin.com')
+password = os.getenv('DJANGO_ADMIN_PASSWORD', 'Admin@1234')
 
 # Check if superuser already exists
 if not CustomUser.objects.filter(username=username).exists():
