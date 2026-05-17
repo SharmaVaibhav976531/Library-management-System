@@ -4,6 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from django.urls import reverse_lazy
 from datetime import timedelta
+import dj_database_url
 
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,7 +13,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 # SECURITY WARNING: Keep secret key in environment variable for production
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "*+12kt-wep!d8t=n2p+s$o7l5bdru6jx7a^^(%wu&(4)hri3^&")
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY", "*+12kt-wep!d8t=n2p+s$o7l5bdru6jx7a^^(%wu&(4)hri3^&"
+)
 # DEBUG mode: True for development, False for production on Render
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
 # ALLOWED_HOSTS configuration
@@ -25,7 +28,7 @@ else:
         "localhost",
         "127.0.0.1",
         ".onrender.com",  # Matches any *.onrender.com
-        "onrender.com",   # Also match the base domain itself
+        "onrender.com",  # Also match the base domain itself
     ]
     # Add any additional hosts from environment
     _env_hosts = os.getenv("DJANGO_ALLOWED_HOSTS", "")
@@ -111,22 +114,33 @@ TEMPLATES = [
 WSGI_APPLICATION = "lms_core.wsgi.application"
 ASGI_APPLICATION = "lms_core.asgi.application"
 
-# Database configuration for Render PostgreSQL
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "lms_db"),
-        "USER": os.getenv("DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "Password12345"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
-        # Render-specific: Use connection pooler if available
-        "CONN_MAX_AGE": 600,  # Persistent connections for 10 minutes
-        "OPTIONS": {
-            "sslmode": "require" if not DEBUG else "disable",  # SSL only for production
-        },
+# Database configuration - Priority: DATABASE_URL (Render) > Individual DB_* env vars > SQLite fallback
+if os.getenv("DATABASE_URL"):
+    # Render production: Use DATABASE_URL
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=not DEBUG,
+        )
     }
-}
+else:
+    # Development or fallback: Use individual environment variables
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("DB_NAME", "lms_db"),
+            "USER": os.getenv("DB_USER", "postgres"),
+            "PASSWORD": os.getenv("DB_PASSWORD", "Password12345"),
+            "HOST": os.getenv("DB_HOST", "localhost"),
+            "PORT": os.getenv("DB_PORT", "5432"),
+            "CONN_MAX_AGE": 600,
+            "OPTIONS": {
+                "sslmode": "require" if not DEBUG else "disable",
+            },
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
