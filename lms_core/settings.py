@@ -117,7 +117,7 @@ ASGI_APPLICATION = "lms_core.asgi.application"
 # Database configuration - Using only database_url environment variable
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.getenv("database_url", ""),
+        default=os.getenv("database_url", "postgresql://lms_db_mqff_user:swe0DVF1JBD3czU75crck8inkKw73App@dpg-d84s7u3rjlhs73df613g-a.oregon-postgres.render.com/lms_db_mqff"),
         conn_max_age=600,
         conn_health_checks=True,
         ssl_require=not DEBUG,
