@@ -16,7 +16,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "*+12kt-wep!d8t=n2p+s$o7l5bdru6jx7a^
 # DEBUG mode: True for development, False for production on Render
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
 # ALLOWED_HOSTS: Include Render domain and localhost for development
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,*").split(",")
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")]
 
 # Application definition
 INSTALLED_APPS = [
