@@ -114,33 +114,15 @@ TEMPLATES = [
 WSGI_APPLICATION = "lms_core.wsgi.application"
 ASGI_APPLICATION = "lms_core.asgi.application"
 
-# Database configuration - Priority: DATABASE_URL (Render) > Individual DB_* env vars > SQLite fallback
-if os.getenv("DATABASE_URL"):
-    # Render production: Use DATABASE_URL
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=os.getenv("DATABASE_URL"),
-            conn_max_age=600,
-            conn_health_checks=True,
-            ssl_require=not DEBUG,
-        )
-    }
-else:
-    # Development or fallback: Use individual environment variables
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("DB_NAME", "lms_db"),
-            "USER": os.getenv("DB_USER", "postgres"),
-            "PASSWORD": os.getenv("DB_PASSWORD", "Password12345"),
-            "HOST": os.getenv("DB_HOST", "localhost"),
-            "PORT": os.getenv("DB_PORT", "5432"),
-            "CONN_MAX_AGE": 600,
-            "OPTIONS": {
-                "sslmode": "require" if not DEBUG else "disable",
-            },
-        }
-    }
+# Database configuration - Using only database_url environment variable
+DATABASES = {
+    "default": dj_database_url.config(
+        default=os.getenv("database_url", ""),
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=not DEBUG,
+    )
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
