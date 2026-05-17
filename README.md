@@ -14,31 +14,31 @@ The system enforces strict role-based access control (Admin, Librarian, Member),
 
 ## Key Features
 
-| Module | Capabilities |
-|--------|--------------|
+| Module                             | Capabilities                                                                                          |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Authentication & Authorization** | Custom user model, role-based access (Admin / Librarian / Member), session login for web, JWT for API |
-| **Book Management** | CRUD operations, ISBN validation, category mapping, cover image upload, inventory tracking |
-| **Member Management** | Registration, unique member code generation, membership status tracking, borrowing history |
-| **Issue & Return** | Eligibility validation, automatic due date calculation (14 days), real-time copy availability sync |
-| **Fine Management** | Automatic overdue calculation (₹5/day), fine recording, payment collection workflow, waiver support |
-| **Reservation System** | Queue management for unavailable books, expiry handling, availability notifications |
-| **Reports & Dashboard** | KPI cards, overdue tracking, fine collection metrics, CSV export, role-aware UI |
-| **REST API** | DRF-powered endpoints, pagination, filtering, Swagger/OpenAPI docs, stateless JWT auth |
+| **Book Management**                | CRUD operations, ISBN validation, category mapping, cover image upload, inventory tracking            |
+| **Member Management**              | Registration, unique member code generation, membership status tracking, borrowing history            |
+| **Issue & Return**                 | Eligibility validation, automatic due date calculation (14 days), real-time copy availability sync    |
+| **Fine Management**                | Automatic overdue calculation (₹5/day), fine recording, payment collection workflow, waiver support   |
+| **Reservation System**             | Queue management for unavailable books, expiry handling, availability notifications                   |
+| **Reports & Dashboard**            | KPI cards, overdue tracking, fine collection metrics, CSV export, role-aware UI                       |
+| **REST API**                       | DRF-powered endpoints, pagination, filtering, Swagger/OpenAPI docs, stateless JWT auth                |
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Layer | Technology | Version |
-|-------|------------|---------|
-| **Backend** | Python, Django, Django REST Framework | 3.12 / 6.0.4 / 3.17.1 |
-| **Authentication** | `djangorestframework-simplejwt` | 5.5.1 |
-| **Database** | PostgreSQL, `psycopg2-binary` | 14+ / 2.9.12 |
-| **Templating** | Jinja2 (Django backend), `django-jinja` extensions | 3.1.6 |
-| **Frontend** | HTML5, CSS3, Bootstrap 5, Vanilla JS | 5.3+ |
-| **API Docs** | `drf-spectacular` | 0.29.0 |
-| **Admin UI** | `django-unfold` | Latest |
-| **Deployment Ready** | Gunicorn, Nginx, Docker, AWS/Heroku | Configurable |
+| Layer                | Technology                                         | Version               |
+| -------------------- | -------------------------------------------------- | --------------------- |
+| **Backend**          | Python, Django, Django REST Framework              | 3.12 / 6.0.4 / 3.17.1 |
+| **Authentication**   | `djangorestframework-simplejwt`                    | 5.5.1                 |
+| **Database**         | PostgreSQL, `psycopg2-binary`                      | 14+ / 2.9.12          |
+| **Templating**       | Jinja2 (Django backend), `django-jinja` extensions | 3.1.6                 |
+| **Frontend**         | HTML5, CSS3, Bootstrap 5, Vanilla JS               | 5.3+                  |
+| **API Docs**         | `drf-spectacular`                                  | 0.29.0                |
+| **Admin UI**         | `django-unfold`                                    | Latest                |
+| **Deployment Ready** | Gunicorn, Nginx, Docker, AWS/Heroku                | Configurable          |
 
 ---
 
@@ -47,12 +47,12 @@ The system enforces strict role-based access control (Admin, Librarian, Member),
 ```
 Library-management-System/
 .
-├── apps
-│   ├── accounts
+├── apps/                          # Django applications
+│   ├── accounts/                  # User authentication & authorization
 │   │   ├── admin.py
 │   │   ├── apps.py
 │   │   ├── __init__.py
-│   │   ├── migrations
+│   │   ├── migrations/
 │   │   │   ├── 0001_initial.py
 │   │   │   └── __init__.py
 │   │   ├── models.py
@@ -61,11 +61,11 @@ Library-management-System/
 │   │   ├── urls_api.py
 │   │   ├── urls.py
 │   │   └── views.py
-│   ├── library
+│   ├── library/                   # Book catalog management
 │   │   ├── admin.py
 │   │   ├── apps.py
 │   │   ├── __init__.py
-│   │   ├── migrations
+│   │   ├── migrations/
 │   │   │   ├── 0001_initial.py
 │   │   │   └── __init__.py
 │   │   ├── models.py
@@ -74,11 +74,11 @@ Library-management-System/
 │   │   ├── urls_api.py
 │   │   ├── urls.py
 │   │   └── views.py
-│   ├── reports
+│   ├── reports/                   # Analytics & KPI dashboard
 │   │   ├── admin.py
 │   │   ├── apps.py
 │   │   ├── __init__.py
-│   │   ├── migrations
+│   │   ├── migrations/
 │   │   │   └── __init__.py
 │   │   ├── models.py
 │   │   ├── serializers.py
@@ -86,11 +86,11 @@ Library-management-System/
 │   │   ├── urls_api.py
 │   │   ├── urls.py
 │   │   └── views.py
-│   └── transactions
+│   └── transactions/              # Book issue/return operations
 │       ├── admin.py
 │       ├── apps.py
 │       ├── __init__.py
-│       ├── migrations
+│       ├── migrations/
 │       │   ├── 0001_initial.py
 │       │   └── __init__.py
 │       ├── models.py
@@ -99,35 +99,65 @@ Library-management-System/
 │       ├── urls_api.py
 │       ├── urls.py
 │       └── views.py
-├── .gitignore
-├── lms_core
+├── lms_core/                      # Django project settings
 │   ├── asgi.py
 │   ├── __init__.py
 │   ├── jinja.py
 │   ├── settings.py
 │   ├── urls.py
 │   └── wsgi.py
-├── manage.py
-├── README.md
-├── requirements.txt
-├── static
-│   ├── css
+├── templates/                     # Jinja2 templates
+│   ├── accounts/
+│   │   └── login.jinja
+│   ├── base.jinja
+│   ├── dashboard.jinja
+│   ├── library/
+│   │   └── book_list.jinja
+│   ├── reports/
+│   │   └── dashboard.jinja
+│   └── transactions/
+│       ├── history.jinja
+│       └── issue.jinja
+├── static/                        # Static assets (development)
+│   ├── css/
 │   │   └── style.css
-│   └── js
+│   └── js/
 │       └── main.js
-└── templates
-    ├── accounts
-    │   └── login.jinja
-    ├── base.jinja
-    ├── dashboard.jinja
-    ├── library
-    │   └── book_list.jinja
-    ├── reports
-    │   └── dashboard.jinja
-    └── transactions
-        ├── history.jinja
-        └── issue.jinja
+├── staticfiles/                   # Collected static files (production)
+│   ├── admin/
+│   ├── css/
+│   ├── js/
+│   ├── rest_framework/
+│   └── unfold/
+├── media/                         # Uploaded files (book covers, etc.)
+├── build.sh                       # Build script for deployment
+├── create_superuser.sh            # Superuser creation script
+├── start.sh                       # Application startup script
+├── docker-compose.yml             # Docker Compose configuration
+├── Dockerfile                     # Docker image definition
+├── .dockerignore                  # Docker ignore patterns
+├── .env                           # Environment variables (production)
+├── .env.example                   # Environment variables template
+├── .gitignore                     # Git ignore patterns
+├── DOCKER_SETUP.md                # Docker setup guide
+├── Procfile                       # Heroku/Render deployment config
+├── render.yaml                    # Render.com deployment config
+├── requirements.txt               # Python dependencies
+├── runtime.txt                    # Python runtime version
+├── manage.py                      # Django management command
+└── README.md                      # This file
 ```
+
+### Directory Guide
+
+| Directory      | Purpose                                                                             |
+| -------------- | ----------------------------------------------------------------------------------- |
+| `apps/`        | Django applications organized by feature (Accounts, Library, Reports, Transactions) |
+| `lms_core/`    | Django project configuration, URL routing, settings, and WSGI/ASGI servers          |
+| `templates/`   | Jinja2 HTML templates for the web UI                                                |
+| `static/`      | Development static assets (CSS, JS)                                                 |
+| `staticfiles/` | Collected production static files (generated by `collectstatic`)                    |
+| `media/`       | User-uploaded files (book covers, documents)                                        |
 
 ---
 
@@ -135,7 +165,7 @@ Library-management-System/
 
 Before getting started, make sure you have the following installed:
 
-- Python 3.10+ *(tested on 3.12.3)*
+- Python 3.10+ _(tested on 3.12.3)_
 - PostgreSQL 14+
 - `pip` & `virtualenv`
 - Git
@@ -207,23 +237,23 @@ python manage.py runserver
 
 Once running, the following interfaces are available:
 
-| Interface | URL |
-|-----------|-----|
-| Web Application | http://127.0.0.1:8000/ |
-| Admin Panel | http://127.0.0.1:8000/admin/ |
+| Interface         | URL                                |
+| ----------------- | ---------------------------------- |
+| Web Application   | http://127.0.0.1:8000/             |
+| Admin Panel       | http://127.0.0.1:8000/admin/       |
 | API Documentation | http://127.0.0.1:8000/api/v1/docs/ |
 
 ---
 
 ## API Endpoints Overview
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/api/v1/auth/login/` | Obtain JWT access and refresh tokens | Public |
-| `GET` | `/api/v1/library/books/` | List books (paginated, searchable) | Optional |
-| `POST` | `/api/v1/transactions/issue/` | Issue a book to a member | Librarian / Admin |
-| `POST` | `/api/v1/transactions/return/` | Process return and calculate fine | Librarian / Admin |
-| `GET` | `/api/v1/reports/dashboard/` | KPI aggregation data | Admin |
+| Method | Endpoint                       | Description                          | Auth              |
+| ------ | ------------------------------ | ------------------------------------ | ----------------- |
+| `POST` | `/api/v1/auth/login/`          | Obtain JWT access and refresh tokens | Public            |
+| `GET`  | `/api/v1/library/books/`       | List books (paginated, searchable)   | Optional          |
+| `POST` | `/api/v1/transactions/issue/`  | Issue a book to a member             | Librarian / Admin |
+| `POST` | `/api/v1/transactions/return/` | Process return and calculate fine    | Librarian / Admin |
+| `GET`  | `/api/v1/reports/dashboard/`   | KPI aggregation data                 | Admin             |
 
 **Interactive API Documentation** is available at: `/api/v1/docs/`
 
@@ -231,11 +261,11 @@ Once running, the following interfaces are available:
 
 ## User Roles & Workflows
 
-| Role | Permissions | Typical Workflow |
-|------|-------------|-----------------|
-| **Admin** | Full system control, user management, fine waivers, global reports | Configure system, manage roles, export analytics, override fines |
+| Role          | Permissions                                                                | Typical Workflow                                                   |
+| ------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Admin**     | Full system control, user management, fine waivers, global reports         | Configure system, manage roles, export analytics, override fines   |
 | **Librarian** | Book catalog management, member onboarding, issue/return processing, fines | Search books, check eligibility, process returns, collect payments |
-| **Member** | View catalog, borrowing history, fine tracking, book reservations | Browse books, view due dates, pay fines, check reservation status |
+| **Member**    | View catalog, borrowing history, fine tracking, book reservations          | Browse books, view due dates, pay fines, check reservation status  |
 
 ---
 
