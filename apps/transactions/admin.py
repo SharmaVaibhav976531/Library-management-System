@@ -4,6 +4,7 @@ from django.utils import timezone
 
 from .models import Member, BookIssue, Reservation, Fine, Notification
 
+
 @admin.register(Member)
 class MemberAdmin(admin.ModelAdmin):
     list_display = (
@@ -33,33 +34,37 @@ class MemberAdmin(admin.ModelAdmin):
     readonly_fields = ("membership_status_badge",)
 
     fieldsets = (
-        ("Member Info", {
-            "fields": (
-                "user",
-                "member_code",
-                "full_name",
-                "phone",
-                "address",
-            )
-        }),
-        ("Membership Details", {
-            "fields": (
-                "membership_type",
-                "membership_start",
-                "membership_end",
-                "status",
-                "membership_status_badge",
-            )
-        }),
+        (
+            "Member Info",
+            {
+                "fields": (
+                    "user",
+                    "member_code",
+                    "full_name",
+                    "phone",
+                    "address",
+                )
+            },
+        ),
+        (
+            "Membership Details",
+            {
+                "fields": (
+                    "membership_type",
+                    "membership_start",
+                    "membership_end",
+                    "membership_status_badge",
+                )
+            },
+        ),
     )
 
     ordering = ("-membership_start",)
 
     def membership_period(self, obj):
         return f"{obj.membership_start} → {obj.membership_end}"
+
     membership_period.short_description = "Membership Period"
-
-
 
     def membership_status_badge(self, obj):
         if not obj.pk or not obj.membership_end:
@@ -84,6 +89,13 @@ class MemberAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("user")
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "user":
+            kwargs["queryset"] = kwargs.get(
+                "queryset", db_field.remote_field.model.objects.all()
+            ).filter(is_active=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(BookIssue)
@@ -115,30 +127,37 @@ class BookIssueAdmin(admin.ModelAdmin):
     readonly_fields = ("fine_display",)
 
     fieldsets = (
-        ("Issue Details", {
-            "fields": (
-                "book",
-                "member",
-                "issued_by",
-            )
-        }),
-        ("Dates", {
-            "fields": (
-                "issue_date",
-                "due_date",
-                "return_date",
-            )
-        }),
-        ("Fine Info", {
-            "fields": (
-                "fine_amount",
-                "fine_paid",
-                "fine_display",
-            )
-        }),
-        ("Status", {
-            "fields": ("status",)
-        }),
+        (
+            "Issue Details",
+            {
+                "fields": (
+                    "book",
+                    "member",
+                    "issued_by",
+                )
+            },
+        ),
+        (
+            "Dates",
+            {
+                "fields": (
+                    "issue_date",
+                    "due_date",
+                    "return_date",
+                )
+            },
+        ),
+        (
+            "Fine Info",
+            {
+                "fields": (
+                    "fine_amount",
+                    "fine_paid",
+                    "fine_display",
+                )
+            },
+        ),
+        ("Status", {"fields": ("status",)}),
     )
 
     ordering = ("-issue_date",)
@@ -155,19 +174,33 @@ class BookIssueAdmin(admin.ModelAdmin):
 
         return format_html(
             '<span style="padding:4px 10px;border-radius:12px;color:white;background:{};">{}</span>',
-            color, label
+            color,
+            label,
         )
+
     status_badge.short_description = "Status"
 
     def fine_display(self, obj):
         fine = obj.calculate_fine()
         return f"₹ {fine:.2f}"
+
     fine_display.short_description = "Calculated Fine"
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related(
-            "book", "member", "issued_by"
+        return (
+            super().get_queryset(request).select_related("book", "member", "issued_by")
         )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "member":
+            kwargs["queryset"] = Member.objects.filter(status="active").order_by(
+                "full_name"
+            )
+        elif db_field.name == "issued_by":
+            kwargs["queryset"] = kwargs.get(
+                "queryset", db_field.remote_field.model.objects.all()
+            ).filter(is_active=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(Reservation)
@@ -205,8 +238,10 @@ class ReservationAdmin(admin.ModelAdmin):
 
         return format_html(
             '<span style="padding:4px 10px;border-radius:12px;color:white;background:{};">{}</span>',
-            color, label
+            color,
+            label,
         )
+
     status_badge.short_description = "Status"
 
     def get_queryset(self, request):
@@ -243,8 +278,10 @@ class FineAdmin(admin.ModelAdmin):
 
         return format_html(
             '<span style="padding:4px 10px;border-radius:12px;color:white;background:{};">{}</span>',
-            color, label
+            color,
+            label,
         )
+
     paid_status_badge.short_description = "Payment Status"
 
     def get_queryset(self, request):
