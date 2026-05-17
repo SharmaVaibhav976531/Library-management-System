@@ -10,22 +10,34 @@ from rest_framework import status
 from .models import BookIssue, Member, Reservation, Fine
 from apps.library.models import Book
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator 
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
+from django.core.paginator import Paginator
 
 
 @login_required
+@ensure_csrf_cookie
 def transaction_history_view(request):
-    issues_qs = BookIssue.objects.select_related('book', 'member').prefetch_related('fine_set').all().order_by('-issue_date')
+    issues_qs = (
+        BookIssue.objects.select_related("book", "member")
+        .prefetch_related("fine_set")
+        .all()
+        .order_by("-issue_date")
+    )
     paginator = Paginator(issues_qs, 10)
-    page_obj = paginator.get_page(request.GET.get('page'))
+    page_obj = paginator.get_page(request.GET.get("page"))
 
-    return render(request, 'transactions/history.jinja', {
-        'title': 'Transaction History',
-        'page_obj': page_obj,
-    })  
+    return render(
+        request,
+        "transactions/history.jinja",
+        {
+            "title": "Transaction History",
+            "page_obj": page_obj,
+        },
+    )
 
 
 @login_required
+@csrf_protect
 def issue_book_view(request):
     members = Member.objects.filter(status="active").order_by("full_name")
     books = Book.objects.filter(available_copies__gt=0).order_by("title")
@@ -86,11 +98,16 @@ def issue_book_view(request):
     return render(
         request,
         "transactions/issue.jinja",
-        {"title": "Issue Book", "members": members, "books": books},
+        {
+            "title": "Issue Book",
+            "members": members,
+            "books": books,
+        },
     )
 
 
 @login_required
+@csrf_protect
 def return_book_view(request):
     if request.method == "POST":
         issue_id = request.POST.get("issue_id")
@@ -179,24 +196,20 @@ def pay_fine_view(request, fine_id):
     """Process fine payment"""
     try:
         with transaction.atomic():
-            fine = Fine.objects.select_for_update().get(
-                id=fine_id, 
-                paid_status=False
-            )
-            
+            fine = Fine.objects.select_for_update().get(id=fine_id, paid_status=False)
+
             # Mark as paid
             fine.paid_status = True
             fine.paid_date = timezone.now().date()
             fine.save()
-            
+
             messages.success(
-                request, 
-                f"✅ Fine of ₹{fine.amount:.2f} collected successfully!"
+                request, f"✅ Fine of ₹{fine.amount:.2f} collected successfully!"
             )
-            
+
     except Fine.DoesNotExist:
         messages.error(request, "Fine already paid or not found.")
     except Exception as e:
         messages.error(request, f"Payment failed: {str(e)}")
-    
-    return redirect('transaction_history')
+
+    return redirect("transaction_history")

@@ -20,7 +20,7 @@
 
                 <!-- Issue Book Form -->
                 <form method="POST" action="/transactions/issue/">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    {% csrf_token %}
                     
                     <!-- Member Selection -->
                     <div class="mb-3">

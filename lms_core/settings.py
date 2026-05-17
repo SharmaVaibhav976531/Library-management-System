@@ -1,15 +1,24 @@
+# lms_core/settings.py
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy
+from datetime import timedelta
 
-load_dotenv()
-
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-dev-key-change-in-prod")
-DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
+# Load environment variables from .env file (only for local development)
+load_dotenv(BASE_DIR / ".env")
+
+# SECURITY WARNING: Keep secret key in environment variable for production
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "*+12kt-wep!d8t=n2p+s$o7l5bdru6jx7a^^(%wu&(4)hri3^&")
+# DEBUG mode: True for development, False for production on Render
+DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
+# ALLOWED_HOSTS: Include Render domain and localhost for development
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,*").split(",")
+
+# Application definition
 INSTALLED_APPS = [
     "unfold",
     "django.contrib.admin",
@@ -18,11 +27,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Third-party apps
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
     "drf_spectacular",
-    # Custom Apps
+    "whitenoise.runserver_nostatic",
+    # Custom apps
     "apps.accounts",
     "apps.library",
     "apps.transactions",
@@ -32,6 +43,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -42,6 +54,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "lms_core.urls"
 
+# Template configuration (Jinja2 + Django)
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.jinja2.Jinja2",
@@ -56,8 +69,13 @@ TEMPLATES = [
             "extensions": [
                 "jinja2.ext.do",
                 "jinja2.ext.loopcontrols",
+                "django_jinja.builtins.extensions.CsrfExtension",
+                "django_jinja.builtins.extensions.UrlsExtension",
+                "django_jinja.builtins.extensions.StaticFilesExtension",
             ],
             "environment": "lms_core.jinja.environment",
+            "match_extension": ".jinja",
+            "autoescape": True,
         },
     },
     {
@@ -79,6 +97,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "lms_core.wsgi.application"
 ASGI_APPLICATION = "lms_core.asgi.application"
 
+# Database configuration for Render PostgreSQL
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -87,9 +106,15 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD", "Password12345"),
         "HOST": os.getenv("DB_HOST", "localhost"),
         "PORT": os.getenv("DB_PORT", "5432"),
+        # Render-specific: Use connection pooler if available
+        "CONN_MAX_AGE": 600,  # Persistent connections for 10 minutes
+        "OPTIONS": {
+            "sslmode": "require" if not DEBUG else "disable",  # SSL only for production
+        },
     }
 }
 
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
@@ -99,21 +124,31 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# Internationalization
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
+# Static files configuration for Render + WhiteNoise
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# WhiteNoise configuration
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Media files (user uploads)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Custom user model
 AUTH_USER_MODEL = "accounts.CustomUser"
 LOGIN_URL = "login"
 
+# Django REST Framework configuration
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -127,8 +162,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-from datetime import timedelta
-
+# JWT settings
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
@@ -136,14 +170,33 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-CORS_ALLOW_ALL_ORIGINS = DEBUG
-CSRF_COOKIE_HTTPONLY = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Restrict in production
+if not DEBUG:
+    CORS_ALLOWED_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+        if origin.strip()
+    ]
 
+# Security settings for production
+if not DEBUG:
+    # HTTPS redirect
+    # SECURE_SSL_REDIRECT = False
+    # HSTS (HTTP Strict Transport Security)
+    SECURE_HSTS_SECONDS = 3600
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    # Secure cookies
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+    # Browser security headers
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "DENY"
 
-from django.urls import reverse_lazy
-
+# Unfold admin configuration
 UNFOLD = {
     "SITE_TITLE": "Library Admin Dashboard",
     "SITE_HEADER": "Library Management Admin",
@@ -233,5 +286,30 @@ UNFOLD = {
                 ],
             },
         ],
+    },
+}
+
+# Logging configuration for Render
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+        "null": {
+            "class": "logging.NullHandler",
+        },
+    },
+    "loggers": {
+        "django.server": {
+            "handlers": ["null"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
     },
 }

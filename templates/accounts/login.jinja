@@ -21,7 +21,7 @@
 
                 <!-- Login Form -->
                 <form method="POST" action="/login/">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    {% csrf_token %}
                     
                     <div class="mb-3">
                         <label for="username" class="form-label fw-bold">Username</label>

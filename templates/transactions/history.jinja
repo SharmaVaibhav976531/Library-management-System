@@ -44,7 +44,7 @@
                 <td>
                     {% if issue.status in ['issued', 'overdue'] %}
                         <form method="POST" action="/transactions/return/" class="d-inline">
-                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                            {% csrf_token %}
                             <input type="hidden" name="issue_id" value="{{ issue.id }}">
                             <button type="submit" class="btn btn-sm btn-success" 
                                     onclick="return confirm('Confirm return of {{ issue.book.title }}?')">
