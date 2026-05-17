@@ -15,12 +15,22 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "*+12kt-wep!d8t=n2p+s$o7l5bdru6jx7a^^(%wu&(4)hri3^&")
 # DEBUG mode: True for development, False for production on Render
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
-# ALLOWED_HOSTS: Include Render domain and localhost for development
-_allowed_hosts_str = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
-ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts_str.split(",") if host.strip()]
-# Ensure Render domain is always included in production
-if not DEBUG:
-    ALLOWED_HOSTS.extend([".onrender.com", "library-management-system-klgf.onrender.com"])
+# ALLOWED_HOSTS configuration
+if DEBUG:
+    # Development: more permissive
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "*"]
+else:
+    # Production: accept any onrender.com subdomain and specific hosts
+    ALLOWED_HOSTS = [
+        "localhost",
+        "127.0.0.1",
+        ".onrender.com",  # Matches any *.onrender.com
+        "onrender.com",   # Also match the base domain itself
+    ]
+    # Add any additional hosts from environment
+    _env_hosts = os.getenv("DJANGO_ALLOWED_HOSTS", "")
+    if _env_hosts:
+        ALLOWED_HOSTS.extend([h.strip() for h in _env_hosts.split(",") if h.strip()])
 
 # Application definition
 INSTALLED_APPS = [
