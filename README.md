@@ -242,7 +242,7 @@ Once running, the following interfaces are available:
 | Web Application   | http://127.0.0.1:8000/             |
 | Admin Panel       | http://127.0.0.1:8000/admin/       |
 | API Documentation | http://127.0.0.1:8000/api/v1/docs/ |
-
+| Live URL          |https://library-management-system-tdp9.onrender.com  |
 ---
 
 ## API Endpoints Overview
